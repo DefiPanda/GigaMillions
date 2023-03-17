@@ -1,12 +1,13 @@
 require("@nomicfoundation/hardhat-toolbox");
+require("@nomiclabs/hardhat-waffle");
 
-const { GOERLI_PRIVATE_KEY } = process.env;
+const { BNB_PRIVATE_KEY } = process.env;
 
 module.exports = {
   solidity: {
     compilers: [
       {
-        version: "0.8.17"
+        version: "0.8.7"
       }
     ]
   },
@@ -18,12 +19,12 @@ module.exports = {
   },
   networks: {
     mainnet: {
-        url: `https://mainnet.infura.io/v3/ebae21367f5742aca395c6656aeb1161`,
-        accounts: [GOERLI_PRIVATE_KEY],
+        url: `https://bsc-dataseed1.defibit.io`,
+        accounts: [BNB_PRIVATE_KEY],
     },
     goerli: {
-        url: `https://goerli.infura.io/v3/ebae21367f5742aca395c6656aeb1161`,
-        accounts: [GOERLI_PRIVATE_KEY]
-      }
+        url: `https://endpoints.omniatech.io/v1/bsc/testnet/public`,
+        accounts: [BNB_PRIVATE_KEY]
+    }
   }
 };

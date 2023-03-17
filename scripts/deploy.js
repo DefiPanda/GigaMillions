@@ -1,6 +1,7 @@
 // This is a script for deploying your contracts. You can adapt it to deploy
 // yours, or create new ones.
 
+const { ethers } = require("hardhat");
 const path = require("path");
 
 async function main() {
@@ -14,12 +15,15 @@ async function main() {
 
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
-  const Bet = await ethers.getContractFactory("Bet");
-  const bet = await Bet.deploy(deployerAddress);
-  await bet.deployed();
+  const MillionJackpot = await ethers.getContractFactory("MillionJackpot");
+  const millionJackpot = await Bet.deploy(deployerAddress);
+  await millionJackpot.deployed();
+  console.log("MillionJackpot contract address:", millionJackpot.address);
 
-  // 0xE0FEDe509625A0BAf37FbB327C4924C59828a514
-  console.log("Bet contract address:", bet.address);
+  const VRFv2DirectFundingConsumer = await ethers.getContractFactory("VRFv2DirectFundingConsumer");
+  const vRFv2DirectFundingConsumer = await Bet.deploy(deployerAddress, millionJackpot.address);
+  await vRFv2DirectFundingConsumer.deployed();
+  console.log("VRFv2DirectFundingConsumer contract address:", millionJackpot.address);
 }
 
 main()
