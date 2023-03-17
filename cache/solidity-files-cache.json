@@ -37,8 +37,8 @@
       ]
     },
     "/Users/zhew2013/Documents/hodl/contracts/MillionJackpot.sol": {
-      "lastModificationDate": 1679031175189,
-      "contentHash": "6f413f3f7cc2808ddc701661cc02c2a2",
+      "lastModificationDate": 1679042525554,
+      "contentHash": "a4efee23aad7f5ad7986c31a1aff3194",
       "sourceName": "contracts/MillionJackpot.sol",
       "solcConfig": {
         "version": "0.8.7",
@@ -66,84 +66,14 @@
       "imports": [
         "@openzeppelin/contracts/token/ERC20/ERC20.sol",
         "@openzeppelin/contracts/access/Ownable.sol",
-        "../interfaces/MillionJackpotInterface.sol",
-        "../interfaces/VRFInterface.sol"
+        "../interfaces/IRandomizer.sol",
+        "./MathUtils.sol"
       ],
       "versionPragmas": [
         "^0.8.7"
       ],
       "artifacts": [
         "MillionJackpot"
-      ]
-    },
-    "/Users/zhew2013/Documents/hodl/interfaces/VRFInterface.sol": {
-      "lastModificationDate": 1678972606160,
-      "contentHash": "e0b08be5d84c16c859311838768e3086",
-      "sourceName": "interfaces/VRFInterface.sol",
-      "solcConfig": {
-        "version": "0.8.7",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.7"
-      ],
-      "artifacts": [
-        "VRFInterface"
-      ]
-    },
-    "/Users/zhew2013/Documents/hodl/interfaces/MillionJackpotInterface.sol": {
-      "lastModificationDate": 1678973144435,
-      "contentHash": "c5321949207f03c0c69a4d6a01c2f72e",
-      "sourceName": "interfaces/MillionJackpotInterface.sol",
-      "solcConfig": {
-        "version": "0.8.7",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.7"
-      ],
-      "artifacts": [
-        "MillionJackpotInterface"
       ]
     },
     "/Users/zhew2013/Documents/hodl/node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol": {
@@ -327,45 +257,6 @@
       ],
       "artifacts": [
         "IERC20Metadata"
-      ]
-    },
-    "/Users/zhew2013/Documents/hodl/contracts/VRFv2DirectFundingConsumer.sol": {
-      "lastModificationDate": 1678973494393,
-      "contentHash": "859365bd6b3d16b0cf3abc9c372719be",
-      "sourceName": "contracts/VRFv2DirectFundingConsumer.sol",
-      "solcConfig": {
-        "version": "0.8.7",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@chainlink/contracts/src/v0.8/ConfirmedOwner.sol",
-        "@chainlink/contracts/src/v0.8/VRFV2WrapperConsumerBase.sol",
-        "../interfaces/MillionJackpotInterface.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.7"
-      ],
-      "artifacts": [
-        "VRFv2DirectFundingConsumer"
       ]
     },
     "/Users/zhew2013/Documents/hodl/node_modules/@chainlink/contracts/src/v0.8/ConfirmedOwner.sol": {
@@ -583,6 +474,76 @@
       ],
       "artifacts": [
         "VRFV2WrapperInterface"
+      ]
+    },
+    "/Users/zhew2013/Documents/hodl/contracts/MathUtils.sol": {
+      "lastModificationDate": 1679042446849,
+      "contentHash": "9b3e2ffc1301f1039c9aa84eb2eea852",
+      "sourceName": "contracts/MathUtils.sol",
+      "solcConfig": {
+        "version": "0.8.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.7"
+      ],
+      "artifacts": [
+        "MathUtils"
+      ]
+    },
+    "/Users/zhew2013/Documents/hodl/interfaces/IRandomizer.sol": {
+      "lastModificationDate": 1679040323821,
+      "contentHash": "2062583ce40537a8accd2c8d71ddfeb5",
+      "sourceName": "interfaces/IRandomizer.sol",
+      "solcConfig": {
+        "version": "0.8.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.7"
+      ],
+      "artifacts": [
+        "IRandomizer"
       ]
     }
   }

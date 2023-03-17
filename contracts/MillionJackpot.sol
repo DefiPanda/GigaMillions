@@ -5,8 +5,8 @@ pragma solidity ^0.8.7;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import { MillionJackpotInterface } from "../interfaces/MillionJackpotInterface.sol";
-import { VRFInterface } from "../interfaces/VRFInterface.sol";
+import { IRandomizer } from "../interfaces/IRandomizer.sol";
+import { MathUtils } from "./MathUtils.sol";
 
 /*
  *  MillionJackpot is a lottery game, where players guess 6 numbers. Winners that correctly guess all 6 numbers
@@ -28,15 +28,11 @@ import { VRFInterface } from "../interfaces/VRFInterface.sol";
  *  
  *  Number 1-5 can be 1-70, number 6 can be 1-25.
  */
-contract MillionJackpot is Ownable {
-    // BNB Mainnet:
-    // address USDT_ADDRESS = 0x55d398326f99059ff775485246999027b3197955;
-    // BNB Testnet:
-    address USDT_ADDRESS = 0x337610d27c682E347C9cD60BD4b3b107C9d34dDd;
-    // BNB Mainnet:
-    // address VRF_COORDINATOR = 0xc587d9053cd1118f25F645F9E08BB98c9712A4EE;
-    // BNB Testnet:
-    address VRF_COORDINATOR = 0x6A2AAd07396B36Fe02a22b33cf443582f682c82f;
+contract MillionJackpot is Ownable, MathUtils {
+    // Arbitrum Goerli
+    address USDC_ADDRESS = 0xD87Ba7A50B2E7E660f678A895E4B72E7CB4CCd9C;
+    // Arbitrum Goerli
+    IRandomizer public randomizer = IRandomizer(0x923096Da90a3b60eb7E12723fA2E1547BA9236Bc);
 
     address VRFConsumerAddress;
     address admin;
@@ -60,10 +56,13 @@ contract MillionJackpot is Ownable {
     uint256 winningPhaseOneEndBlockNumber;
     uint256 winningPhaseTwoDays;
     uint256 winningPhaseTwoEndBlockNumber;
-    uint256 minUSDTDrawBalance;
+    uint256 minUSDCDrawBalance;
     uint256 blockPerDay;
     uint256[6] winningNumbers;
     address[] jackpotWinners;
+
+    event Flip(uint256 indexed id);
+    event FlipResult(uint256 indexed id, uint256 number);
 
     constructor(address payable _admin) {
         admin = _admin;
@@ -75,7 +74,7 @@ contract MillionJackpot is Ownable {
         twoPlusOnePayout = 50_000000;
         onePlusOnePayout = 15_000000;
         zeroPlusOnePayout = 10_000000;
-        minUSDTDrawBalance = 10000_000000;
+        minUSDCDrawBalance = 10000_000000;
         newDrawEligibileBlockNumber = 0;
         blockPerDay = 28421;
         newDrawEligibileDays = 7;
@@ -100,8 +99,8 @@ contract MillionJackpot is Ownable {
         admin = _admin;
     }
 
-    function updateMinUSDTDrawBalance(uint256 minBalance) onlyOwner external {
-        minUSDTDrawBalance = minBalance;
+    function updateMinUSDCDrawBalance(uint256 minBalance) onlyOwner external {
+        minUSDCDrawBalance = minBalance;
     }
 
     function updateBlockPerDay(uint256 blocks) onlyOwner external {
@@ -126,24 +125,40 @@ contract MillionJackpot is Ownable {
 
     function decideWinners() onlyOwner external {    
         // rolling out winning number.
-        VRFInterface(VRFConsumerAddress).requestRandomWords();
+        uint256 id = IRandomizer(randomizer).request(50000);
+        emit Flip(id);
     }
 
-    function fulfillRandom(uint256[] calldata numbers) external {
-        require(VRF_COORDINATOR == msg.sender, "not-vrf-coordinator");
-        uint usdtBalance = IERC20(USDT_ADDRESS).balanceOf(address(this));
-        require(usdtBalance >= minUSDTDrawBalance, "Don't have enough ETH blanace");
+    function randomizerCallback(uint256 _id, bytes32 _value) external {
+        require(address(randomizer) == msg.sender, "not-randomizer");
+        uint usdcBalance = IERC20(USDC_ADDRESS).balanceOf(address(this));
+        require(usdcBalance >= minUSDCDrawBalance, "Don't have enough USDC blanace");
         require(block.number > newDrawEligibileBlockNumber, "Can't start draw yet");
         require(block.number > winningPhaseTwoEndBlockNumber, "Still claming last game");
 
-        for (uint i = 0; i < numbers.length; i++) {
-            winningNumbers[i] = numbers[i];
+        emit FlipResult(_id, uint256(_value));
+
+        uint256[] memory lotteryResults = MathUtils.convertIntToWinningNumbers(uint256(_value));
+        for (uint i = 0; i < lotteryResults.length; i++) {
+            winningNumbers[i] = lotteryResults[i];
         }
        
-        lastGamePoolBalance = usdtBalance;
+        lastGamePoolBalance = usdcBalance;
         newDrawEligibileBlockNumber = block.number + blockPerDay * newDrawEligibileDays;
         winningPhaseOneEndBlockNumber = block.number + blockPerDay * winningPhaseOneDays;
         winningPhaseTwoEndBlockNumber = block.number + blockPerDay * winningPhaseTwoDays;
+    }
+
+    function getNewDrawEligibileBlockNumber() external view returns (uint256) {
+        return newDrawEligibileBlockNumber;
+    }
+
+    function getWinningPhaseOneEndBlockNumber() external view returns (uint256) {
+        return winningPhaseOneEndBlockNumber;
+    }
+
+    function getWinningPhaseTwoEndBlockNumber() external view returns (uint256) {
+        return winningPhaseTwoEndBlockNumber;
     }
 
     function getWinningNumbers() external view returns (uint256[] memory) {
@@ -152,5 +167,9 @@ contract MillionJackpot is Ownable {
             winningNumberCalldata[i] = winningNumbers[i];
         }
         return winningNumberCalldata;
+    }
+
+    function randomizerWithdraw(address _randomizer, uint256 amount) onlyOwner external {
+        IRandomizer(_randomizer).clientWithdrawTo(msg.sender, amount);
     }
 }
