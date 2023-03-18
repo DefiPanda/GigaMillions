@@ -9,26 +9,21 @@ async function main() {
   const [deployer] = await ethers.getSigners();
   const deployerAddress = await deployer.getAddress();
   console.log(
-    "Deploying the contracts with the account:",
+    "Deploying the contracts with the account address:",
     deployerAddress
   );
 
-  console.log("Account balance:", (await deployer.getBalance()).toString());
-
   const MillionJackpot = await ethers.getContractFactory("MillionJackpot");
-  const millionJackpot = await Bet.deploy(deployerAddress);
-  await millionJackpot.deployed();
-  console.log("MillionJackpot contract address:", millionJackpot.address);
-
-  const VRFv2DirectFundingConsumer = await ethers.getContractFactory("VRFv2DirectFundingConsumer");
-  const vRFv2DirectFundingConsumer = await Bet.deploy(deployerAddress, millionJackpot.address);
-  await vRFv2DirectFundingConsumer.deployed();
-  console.log("VRFv2DirectFundingConsumer contract address:", millionJackpot.address);
+  const millionJackpot = await MillionJackpot.deploy(deployerAddress);
+  const deployedMillionJackpot = await millionJackpot.deployed();
+  console.log("MillionJackpot contract address:", deployedMillionJackpot.address);
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+if (require.main === module) {
+  main()
+    .then(() => process.exit(0))
+    .catch((error) => {
+      console.error(error);
+      process.exit(1);
+    });
+}

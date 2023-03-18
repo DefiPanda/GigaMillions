@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "deploy": "node scripts/deploy.js"
+    "deploy": "node scripts/deploy.js",
+    "test": "npx hardhat coverage --testfiles tests/jackpot.test.js"
   },
   "author": "",
   "license": "ISC",

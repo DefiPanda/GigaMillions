@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 import { IRandomizer } from "../interfaces/IRandomizer.sol";
-import { MathUtils } from "./MathUtils.sol";
 
 /*
  *  MillionJackpot is a lottery game, where players guess 6 numbers. Winners that correctly guess all 6 numbers
@@ -28,11 +27,14 @@ import { MathUtils } from "./MathUtils.sol";
  *  
  *  Number 1-5 can be 1-70, number 6 can be 1-25.
  */
-contract MillionJackpot is Ownable, MathUtils {
+contract MillionJackpot is Ownable {
     // Arbitrum Goerli
     address USDC_ADDRESS = 0xD87Ba7A50B2E7E660f678A895E4B72E7CB4CCd9C;
     // Arbitrum Goerli
     IRandomizer public randomizer = IRandomizer(0x923096Da90a3b60eb7E12723fA2E1547BA9236Bc);
+
+    // 70 * 70 * 70 * 70 * 70 * 25
+    uint256 MAX_COMBINATIONS = 42017500000;
 
     address VRFConsumerAddress;
     address admin;
@@ -83,17 +85,17 @@ contract MillionJackpot is Ownable, MathUtils {
         winningNumbers = [0, 0, 0, 0, 0, 0];
     }
 
-    function placeBet(uint256 daysForUnlock) external payable {
-        //
-    }
+    // function placeBet() external payable {
+    //     //
+    // }
 
-    function claim() external {
-        //
-    }
+    // function claim() external {
+    //     //
+    // }
 
-    function claimJackpot() external {
-        //
-    }
+    // function claimJackpot() external {
+    //     //
+    // }
 
     function updateAdmin(address payable _admin) onlyOwner external {
         admin = _admin;
@@ -129,6 +131,20 @@ contract MillionJackpot is Ownable, MathUtils {
         emit Flip(id);
     }
 
+    function convertIntToWinningNumbers(uint256 number) external view returns (uint256[6] memory) {
+        uint256[6] memory lotteryResults;
+        uint256 randomNumber = number % MAX_COMBINATIONS;
+        lotteryResults[5] = (randomNumber % 25) + 1;
+        randomNumber /= 25;
+
+        for (uint i = 0; i <= 4; i++) {
+            lotteryResults[i] = (randomNumber % 70) + 1;
+            randomNumber /= 70;
+        }
+
+        return lotteryResults;
+    }
+
     function randomizerCallback(uint256 _id, bytes32 _value) external {
         require(address(randomizer) == msg.sender, "not-randomizer");
         uint usdcBalance = IERC20(USDC_ADDRESS).balanceOf(address(this));
@@ -138,7 +154,7 @@ contract MillionJackpot is Ownable, MathUtils {
 
         emit FlipResult(_id, uint256(_value));
 
-        uint256[] memory lotteryResults = MathUtils.convertIntToWinningNumbers(uint256(_value));
+        uint256[6] memory lotteryResults = this.convertIntToWinningNumbers(uint256(_value));
         for (uint i = 0; i < lotteryResults.length; i++) {
             winningNumbers[i] = lotteryResults[i];
         }
@@ -161,8 +177,8 @@ contract MillionJackpot is Ownable, MathUtils {
         return winningPhaseTwoEndBlockNumber;
     }
 
-    function getWinningNumbers() external view returns (uint256[] memory) {
-        uint256[] memory winningNumberCalldata;
+    function getWinningNumbers() external view returns (uint256[6] memory) {
+        uint256[6] memory winningNumberCalldata;
         for (uint i = 0; i < winningNumbers.length; i++) {
             winningNumberCalldata[i] = winningNumbers[i];
         }
