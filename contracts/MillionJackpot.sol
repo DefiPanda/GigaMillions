@@ -12,16 +12,17 @@ import { IRandomizer } from "../interfaces/IRandomizer.sol";
  *  will split all money in the pool. Winners that correctly guess some numbers will get payout according to
  *  certain rules.
  *
- *  The winning number will be determined approximately every 7 days, if there is at least 10,000 USDC in the pool.
+ *  The winning number will be determined approximately every 7 days (subject to change), if there is at least
+ *  10,000 USDC in the pool.
  *
  *  Once the winning number is determined, payout will paid in two phase:
  *  Phase 1) First 2 days:
  *     Non-jackpot winners can immediately withdraw the winning.
  *     Jackpot winners can confirm their winning. If the winner doesn't confirm in this phase, the winning
  *     becomes invalid.
- *  Phase 2) 1 day within Phase 1 ends:
- *     Jackpot winners can withdraw the winning.
- *     Jackpot winning = (Total USDC left after Phase 1 payout) / (Total number of winners)
+ *  Phase 2) After Phase 1 ends:
+ *     Admin will send jackpot winners the winnings.
+ *     Jackpot winning per each winner = (Total USDC left after Phase 1 payout) / (Total number of winners)
  *
  *  All USDC left in the pool in the last game will roll over to the new game.
  *  
@@ -36,7 +37,6 @@ contract MillionJackpot is Ownable {
     // 70 * 70 * 70 * 70 * 70 * 25
     uint256 MAX_COMBINATIONS = 42017500000;
 
-    address VRFConsumerAddress;
     address admin;
 
     uint256 fivePlusZeroPayout;
@@ -52,14 +52,9 @@ contract MillionJackpot is Ownable {
     // is still going on.
     // Winner of the last jackpot can only split the pool with USDCs amount equals to lastGamePoolBalance.
     uint256 lastGamePoolBalance;
-    uint256 newDrawEligibileDays;
-    uint256 newDrawEligibileBlockNumber;
-    uint256 winningPhaseOneDays;
-    uint256 winningPhaseOneEndBlockNumber;
-    uint256 winningPhaseTwoDays;
-    uint256 winningPhaseTwoEndBlockNumber;
+    // 0 - not started, 1 - phase one.
+    uint256 claimPhase;
     uint256 minUSDCDrawBalance;
-    uint256 blockPerDay;
     uint256[6] winningNumbers;
     address[] jackpotWinners;
 
@@ -77,11 +72,7 @@ contract MillionJackpot is Ownable {
         onePlusOnePayout = 15_000000;
         zeroPlusOnePayout = 10_000000;
         minUSDCDrawBalance = 10000_000000;
-        newDrawEligibileBlockNumber = 0;
-        blockPerDay = 331035;
-        newDrawEligibileDays = 7;
-        winningPhaseOneDays = 2;
-        winningPhaseTwoDays = 1;
+        claimPhase = 0;
         winningNumbers = [0, 0, 0, 0, 0, 0];
     }
 
@@ -93,10 +84,6 @@ contract MillionJackpot is Ownable {
     //     //
     // }
 
-    // function claimJackpot() external {
-    //     //
-    // }
-
     function updateAdmin(address payable _admin) onlyOwner external {
         admin = _admin;
     }
@@ -105,29 +92,25 @@ contract MillionJackpot is Ownable {
         minUSDCDrawBalance = minBalance;
     }
 
-    function updateBlockPerDay(uint256 blocks) onlyOwner external {
-        blockPerDay = blocks;
+    function updateClaimPhase(uint256 phase) onlyOwner external {
+        claimPhase = phase;
     }
 
-    function updateNewDrawEligibileDays(uint256 eligibleDays) onlyOwner external {
-        newDrawEligibileDays = eligibleDays;
+    function getClaimPhase() external view returns (uint256) {
+        return claimPhase;
     }
 
-    function updatePhaseOneDays(uint256 phaseOneDays) onlyOwner external {
-        winningPhaseOneDays = phaseOneDays;
-    }
-
-    function updatePhaseTwoDays(uint256 phaseTwoDays) onlyOwner external {
-        winningPhaseTwoDays = phaseTwoDays;
-    }
-
-    function updateVRFAddress(address vrfAddress) onlyOwner external {
-        VRFConsumerAddress = vrfAddress;
-    }
+    function endPhaseOneAndDistributeJackpot() onlyOwner external {
+        uint256 winningAmount = lastGamePoolBalance / jackpotWinners.length;
+        for (uint i = 0; i < jackpotWinners.length; i++) {
+            IERC20(USDC_ADDRESS).transfer(jackpotWinners[i], winningAmount);
+        }
+        claimPhase = 0;
+    } 
 
     function decideWinners() onlyOwner external {    
         // rolling out winning number.
-        uint256 id = IRandomizer(randomizer).request(6000000);
+        uint256 id = IRandomizer(randomizer).request(1000000);
         emit Flip(id);
     }
 
@@ -153,8 +136,7 @@ contract MillionJackpot is Ownable {
         require(address(randomizer) == msg.sender, "not-randomizer");
         uint256 usdcBalance = IERC20(USDC_ADDRESS).balanceOf(address(this));
         require(usdcBalance >= minUSDCDrawBalance, "Don't have enough USDC blanace");
-        require(block.number > newDrawEligibileBlockNumber, "Can't start draw yet");
-        require(block.number > winningPhaseTwoEndBlockNumber, "Still claming last game");
+        require(claimPhase == 0, "Another claim is going on");
 
         emit FlipResult(_id, uint256(_value));
 
@@ -163,22 +145,11 @@ contract MillionJackpot is Ownable {
             winningNumbers[i] = lotteryResults[i];
         }
        
-        lastGamePoolBalance = usdcBalance;
-        newDrawEligibileBlockNumber = block.number + blockPerDay * newDrawEligibileDays;
-        winningPhaseOneEndBlockNumber = block.number + blockPerDay * winningPhaseOneDays;
-        winningPhaseTwoEndBlockNumber = block.number + blockPerDay * winningPhaseTwoDays;
-    }
+        uint256 adminFees = lastGamePoolBalance / 5;
+        IERC20(USDC_ADDRESS).transfer(admin, adminFees);
 
-    function getNewDrawEligibileBlockNumber() external view returns (uint256) {
-        return newDrawEligibileBlockNumber;
-    }
-
-    function getWinningPhaseOneEndBlockNumber() external view returns (uint256) {
-        return winningPhaseOneEndBlockNumber;
-    }
-
-    function getWinningPhaseTwoEndBlockNumber() external view returns (uint256) {
-        return winningPhaseTwoEndBlockNumber;
+        lastGamePoolBalance = IERC20(USDC_ADDRESS).balanceOf(address(this));
+        claimPhase = 1;
     }
 
     function getWinningNumbers() external view returns (uint256[6] memory) {
