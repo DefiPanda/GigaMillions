@@ -29,7 +29,7 @@ import { IRandomizer } from "../interfaces/IRandomizer.sol";
  */
 contract MillionJackpot is Ownable {
     // Arbitrum Goerli
-    address USDC_ADDRESS = 0xD87Ba7A50B2E7E660f678A895E4B72E7CB4CCd9C;
+    address USDC_ADDRESS = 0xc944B73fBA33a773A4A07340333A3184A70aF1ae;
     // Arbitrum Goerli
     IRandomizer public randomizer = IRandomizer(0x923096Da90a3b60eb7E12723fA2E1547BA9236Bc);
 
@@ -78,7 +78,7 @@ contract MillionJackpot is Ownable {
         zeroPlusOnePayout = 10_000000;
         minUSDCDrawBalance = 10000_000000;
         newDrawEligibileBlockNumber = 0;
-        blockPerDay = 28421;
+        blockPerDay = 331035;
         newDrawEligibileDays = 7;
         winningPhaseOneDays = 2;
         winningPhaseTwoDays = 1;
@@ -127,7 +127,7 @@ contract MillionJackpot is Ownable {
 
     function decideWinners() onlyOwner external {    
         // rolling out winning number.
-        uint256 id = IRandomizer(randomizer).request(50000);
+        uint256 id = IRandomizer(randomizer).request(6000000);
         emit Flip(id);
     }
 
@@ -145,9 +145,13 @@ contract MillionJackpot is Ownable {
         return lotteryResults;
     }
 
+    function getUSDCBalance() external view returns (uint256) {
+        return IERC20(USDC_ADDRESS).balanceOf(address(this));
+    }
+
     function randomizerCallback(uint256 _id, bytes32 _value) external {
         require(address(randomizer) == msg.sender, "not-randomizer");
-        uint usdcBalance = IERC20(USDC_ADDRESS).balanceOf(address(this));
+        uint256 usdcBalance = IERC20(USDC_ADDRESS).balanceOf(address(this));
         require(usdcBalance >= minUSDCDrawBalance, "Don't have enough USDC blanace");
         require(block.number > newDrawEligibileBlockNumber, "Can't start draw yet");
         require(block.number > winningPhaseTwoEndBlockNumber, "Still claming last game");

@@ -1,11 +1,19 @@
 const { ethers } = require("hardhat");
 
+const WALLET_KEY = "";
+
 async function main() {
     const provider = new ethers.providers.JsonRpcProvider("https://goerli-rollup.arbitrum.io/rpc", 421613);
-    const signer = new ethers.Wallet("", provider);
+    const signer = new ethers.Wallet(WALLET_KEY, provider);
 
-    const millionJackpot = await ethers.getContractAt("MillionJackpot", "0x197B0141776F7E637c8B648380561376f118D783", signer);
-    console.log(await millionJackpot.convertIntToWinningNumbers(2));
+    const millionJackpot = await ethers.getContractAt("MillionJackpot", "0x5626492fb1cF10fc96dC313ed7099E9F59A5648c", signer);
+
+    const winningLottery = await millionJackpot.randomizerCallback(1, ethers.utils.hexZeroPad(ethers.utils.hexlify(420131750002123), 32));
+    console.log(winningLottery);   
+
+    const transactionReceipt = await winningLottery.wait(1);
+    console.log(transactionReceipt);
+    console.log(transactionReceipt.gasUsed);
 }
 
 if (require.main === module) {

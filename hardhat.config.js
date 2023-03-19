@@ -1,5 +1,6 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("@nomiclabs/hardhat-waffle");
+require("hardhat-gas-reporter");
 
 const { ARBITRUM_PRIVATE_KEY } = process.env;
 
@@ -13,9 +14,12 @@ module.exports = {
   },
   paths: {
     sources: "./contracts",
-    tests: "./test",
+    tests: "./tests",
     cache: "./cache",
     artifacts: "./artifacts"
+  },
+  gasReporter: {
+    enabled: false
   },
   etherscan: {
     apiKey: {
@@ -27,12 +31,12 @@ module.exports = {
     arbitrum: {
         url: `https://arb1.arbitrum.io/rpc`,
         chainId: 42161,
-        accounts: [ARBITRUM_PRIVATE_KEY],
+        accounts: [""],
     },
     arbitrum_goerli: {
         url: `https://goerli-rollup.arbitrum.io/rpc`,
         chainId: 421613,
-        accounts: [ARBITRUM_PRIVATE_KEY]
+        accounts: [""]
     }
   }
 };

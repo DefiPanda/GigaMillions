@@ -1,9 +1,9 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
-    "/Users/zhew2013/Documents/hodl/contracts/MillionJackpot.sol": {
-      "lastModificationDate": 1679119136640,
-      "contentHash": "d76c8409e66438b16d643d1a624ee684",
+    "/Users/zhew2013/Documents/GigaMillions/contracts/MillionJackpot.sol": {
+      "lastModificationDate": 1679199258825,
+      "contentHash": "74f2005c40715dc65701a7c3d8853094",
       "sourceName": "contracts/MillionJackpot.sol",
       "solcConfig": {
         "version": "0.8.7",
@@ -40,7 +40,7 @@
         "MillionJackpot"
       ]
     },
-    "/Users/zhew2013/Documents/hodl/interfaces/IRandomizer.sol": {
+    "/Users/zhew2013/Documents/GigaMillions/interfaces/IRandomizer.sol": {
       "lastModificationDate": 1679119206490,
       "contentHash": "2062583ce40537a8accd2c8d71ddfeb5",
       "sourceName": "interfaces/IRandomizer.sol",
@@ -75,7 +75,7 @@
         "IRandomizer"
       ]
     },
-    "/Users/zhew2013/Documents/hodl/node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol": {
+    "/Users/zhew2013/Documents/GigaMillions/node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol": {
       "lastModificationDate": 1678964575503,
       "contentHash": "834a0dde221759af42b030253315b086",
       "sourceName": "@openzeppelin/contracts/token/ERC20/ERC20.sol",
@@ -114,7 +114,7 @@
         "ERC20"
       ]
     },
-    "/Users/zhew2013/Documents/hodl/node_modules/@openzeppelin/contracts/access/Ownable.sol": {
+    "/Users/zhew2013/Documents/GigaMillions/node_modules/@openzeppelin/contracts/access/Ownable.sol": {
       "lastModificationDate": 1678964575702,
       "contentHash": "e436cea06129be2c73cda4b1acc848b5",
       "sourceName": "@openzeppelin/contracts/access/Ownable.sol",
@@ -151,42 +151,7 @@
         "Ownable"
       ]
     },
-    "/Users/zhew2013/Documents/hodl/node_modules/@openzeppelin/contracts/utils/Context.sol": {
-      "lastModificationDate": 1678964575451,
-      "contentHash": "5f2c5c4b6af2dd4551027144797bc8be",
-      "sourceName": "@openzeppelin/contracts/utils/Context.sol",
-      "solcConfig": {
-        "version": "0.8.7",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.0"
-      ],
-      "artifacts": [
-        "Context"
-      ]
-    },
-    "/Users/zhew2013/Documents/hodl/node_modules/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol": {
+    "/Users/zhew2013/Documents/GigaMillions/node_modules/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol": {
       "lastModificationDate": 1678964575653,
       "contentHash": "909ab67fc5c25033fe6cd364f8c056f9",
       "sourceName": "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol",
@@ -223,7 +188,7 @@
         "IERC20Metadata"
       ]
     },
-    "/Users/zhew2013/Documents/hodl/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol": {
+    "/Users/zhew2013/Documents/GigaMillions/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol": {
       "lastModificationDate": 1678964575652,
       "contentHash": "ad7c2d0af148c8f9f097d65deeb4da6b",
       "sourceName": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
@@ -256,6 +221,41 @@
       ],
       "artifacts": [
         "IERC20"
+      ]
+    },
+    "/Users/zhew2013/Documents/GigaMillions/node_modules/@openzeppelin/contracts/utils/Context.sol": {
+      "lastModificationDate": 1678964575451,
+      "contentHash": "5f2c5c4b6af2dd4551027144797bc8be",
+      "sourceName": "@openzeppelin/contracts/utils/Context.sol",
+      "solcConfig": {
+        "version": "0.8.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "Context"
       ]
     }
   }
