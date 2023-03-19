@@ -39,6 +39,7 @@ contract MillionJackpot is Ownable {
 
     address admin;
 
+    uint256 lotteryId;
     uint256 fivePlusZeroPayout;
     uint256 fourPlusOnePayout;
     uint256 fourPlusZeroPayout;
@@ -57,6 +58,8 @@ contract MillionJackpot is Ownable {
     uint256 minUSDCDrawBalance;
     uint256[6] winningNumbers;
     address[] jackpotWinners;
+    // User address => Lottery ID => Lotteries
+    mapping(address => mapping(uint256 => uint256[][6])) internal userAddressToLotteries;
 
     event Flip(uint256 indexed id);
     event FlipResult(uint256 indexed id, uint256 number);
@@ -73,16 +76,24 @@ contract MillionJackpot is Ownable {
         zeroPlusOnePayout = 10_000000;
         minUSDCDrawBalance = 10000_000000;
         claimPhase = 0;
+        lotteryId = 1;
         winningNumbers = [0, 0, 0, 0, 0, 0];
     }
 
-    // function placeBet() external payable {
-    //     //
-    // }
+    function placeBet(uint256[6] numbers) external payable {
+        require(numbers[0] > 0 && numbers[0] <= 70, "first to fitth number must be from 1 to 70.");
+        require(numbers[1] > 0 && numbers[1] <= 70, "first to fitth number must be from 1 to 70.");
+        require(numbers[2] > 0 && numbers[2] <= 70, "first to fitth number must be from 1 to 70.");
+        require(numbers[3] > 0 && numbers[3] <= 70, "first to fitth number must be from 1 to 70.");
+        require(numbers[4] > 0 && numbers[4] <= 70, "first to fitth number must be from 1 to 70.");
+        require(numbers[5] > 0 && numbers[5] <= 25, "last number must be from 1 to 25.");
+        mapping(uint256 => uint256[][6]) storage userAllLotteries = userAddressToLotteries[msg.sender];
+        uint256[][6] useerLotteries
+    }
 
-    // function claim() external {
-    //     //
-    // }
+    function claim() external {
+        
+    }
 
     function updateAdmin(address payable _admin) onlyOwner external {
         admin = _admin;
@@ -106,7 +117,8 @@ contract MillionJackpot is Ownable {
             IERC20(USDC_ADDRESS).transfer(jackpotWinners[i], winningAmount);
         }
         claimPhase = 0;
-    } 
+        lotteryId = lotteryId + 1;
+    }
 
     function decideWinners() onlyOwner external {    
         // rolling out winning number.
