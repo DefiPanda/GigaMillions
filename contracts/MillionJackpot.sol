@@ -36,10 +36,12 @@ contract MillionJackpot is Ownable {
 
     // 70 * 70 * 70 * 70 * 70 * 25
     uint256 MAX_COMBINATIONS = 42017500000;
+    uint256 JACKPOT_MARKUP = 999999999999999999999;
 
     address admin;
 
     uint256 lotteryId;
+    uint256 entryFee;
     uint256 fivePlusZeroPayout;
     uint256 fourPlusOnePayout;
     uint256 fourPlusZeroPayout;
@@ -57,15 +59,18 @@ contract MillionJackpot is Ownable {
     uint256 claimPhase;
     uint256 minUSDCDrawBalance;
     uint256[6] winningNumbers;
+    // array of winners, which can contains duplicates.
     address[] jackpotWinners;
     // User address => Lottery ID => Lotteries
-    mapping(address => mapping(uint256 => uint256[][6])) internal userAddressToLotteries;
+    mapping(address => mapping(uint256 => uint256[6][])) internal userAddressToLotteries;
+    mapping(address => mapping(uint256 => bool)) internal userAddressToLotteryClaimRecord;
 
     event Flip(uint256 indexed id);
     event FlipResult(uint256 indexed id, uint256 number);
 
     constructor(address payable _admin) {
         admin = _admin;
+        entryFee = 10_000000;
         fivePlusZeroPayout = 1000000_000000;
         fourPlusOnePayout = 50000_000000;
         fourPlusZeroPayout = 750_000000;
@@ -80,23 +85,130 @@ contract MillionJackpot is Ownable {
         winningNumbers = [0, 0, 0, 0, 0, 0];
     }
 
-    function placeBet(uint256[6] numbers) external payable {
-        require(numbers[0] > 0 && numbers[0] <= 70, "first to fitth number must be from 1 to 70.");
-        require(numbers[1] > 0 && numbers[1] <= 70, "first to fitth number must be from 1 to 70.");
-        require(numbers[2] > 0 && numbers[2] <= 70, "first to fitth number must be from 1 to 70.");
-        require(numbers[3] > 0 && numbers[3] <= 70, "first to fitth number must be from 1 to 70.");
-        require(numbers[4] > 0 && numbers[4] <= 70, "first to fitth number must be from 1 to 70.");
-        require(numbers[5] > 0 && numbers[5] <= 25, "last number must be from 1 to 25.");
-        mapping(uint256 => uint256[][6]) storage userAllLotteries = userAddressToLotteries[msg.sender];
-        uint256[][6] useerLotteries
+    function placeBet(uint256[6][] calldata bets, uint256 amount) external payable {
+        address user = msg.sender;
+
+        require(amount >= bets.length * entryFee, "NOT_ENOUGH_ENTRY_FEE");
+        require(IERC20(USDC_ADDRESS).allowance(user, address(this)) >= amount, "Not approved to send USDC requested");
+        uint256 fee = amount / 5;
+        bool success = IERC20(USDC_ADDRESS).transferFrom(user, address(this), amount - fee);
+        success = success && IERC20(USDC_ADDRESS).transferFrom(user, admin, fee);
+        require(success, "USDC_PAYMENT_FAILED");
+
+        mapping(uint256 => uint256[6][]) storage userAllLotteries = userAddressToLotteries[user];
+        uint256[6][] storage userLotteries = userAllLotteries[lotteryId];
+        for (uint i = 0; i < bets.length; i++) {
+            uint256[6] memory numbers = bets[i];
+            require(numbers[0] > 0 && numbers[0] <= 70, "first to fifth number must be from 1 to 70.");
+            require(numbers[1] > 0 && numbers[1] <= 70, "first to fifth number must be from 1 to 70.");
+            require(numbers[2] > 0 && numbers[2] <= 70, "first to fifth number must be from 1 to 70.");
+            require(numbers[3] > 0 && numbers[3] <= 70, "first to fifth number must be from 1 to 70.");
+            require(numbers[4] > 0 && numbers[4] <= 70, "first to fifth number must be from 1 to 70.");
+            require(numbers[5] > 0 && numbers[5] <= 25, "last number must be from 1 to 25.");
+            userLotteries.push(numbers);
+        }
+    }
+
+    function getReward(uint256[6] memory entry, uint256[71] calldata winningNumberCount, uint256 lastNumber)
+        external view returns (uint256) {
+        bool correctLastNumber = (entry[5] == lastNumber);
+
+        uint256[71] memory entryNumberCount;
+        int correctNonJackpotGuess = 0;
+        for (uint i = 0; i < entry.length - 1; i++) {
+            uint256 entryNumber = entry[i];
+            if (winningNumberCount[entryNumber] > 0 && winningNumberCount[entryNumber] > entryNumberCount[entryNumber]) {
+                correctNonJackpotGuess++;
+                entryNumberCount[entryNumber] = entryNumberCount[entryNumber] + 1;
+            }
+        }
+
+        if (correctNonJackpotGuess == 5 && correctLastNumber) {
+            return JACKPOT_MARKUP;
+        }
+
+        if (correctNonJackpotGuess == 5) {
+            return fivePlusZeroPayout;
+        }
+
+        if (correctNonJackpotGuess == 4 && correctLastNumber) {
+            return fourPlusOnePayout;
+        }
+
+        if (correctNonJackpotGuess == 4) {
+            return fourPlusZeroPayout;
+        }
+
+        if (correctNonJackpotGuess == 3 && correctLastNumber) {
+            return threePlusOnePayout;
+        }
+
+        if (correctNonJackpotGuess == 3) {
+            return threePlusZeroPayout;
+        }
+
+        if (correctNonJackpotGuess == 2 && correctLastNumber) {
+            return twoPlusOnePayout;
+        }
+
+        if (correctNonJackpotGuess == 1 && correctLastNumber) {
+            return onePlusOnePayout;
+        }
+
+        if (correctNonJackpotGuess == 1 && correctLastNumber) {
+            return zeroPlusOnePayout;
+        }
+
+        return 0;
     }
 
     function claim() external {
-        
+        require(claimPhase > 0, "CLAIM_TIME_NOT_READY");
+        address user = msg.sender;
+
+        require(!userAddressToLotteryClaimRecord[user][lotteryId], "ALREADY_CLAIMED_LOTTERY");
+        uint256[6][] storage userLotteries = userAddressToLotteries[user][lotteryId];
+        uint256 totalNonJackpotReward = 0;
+
+        uint256[71] memory winningNumberCount;
+        for (uint i = 0; i < winningNumbers.length - 1; i++) {
+            uint count = winningNumberCount[winningNumbers[i]];
+            winningNumberCount[winningNumbers[i]] = count + 1;
+        }
+
+        for (uint i = 0; i < userLotteries.length; i++) {
+            uint256 reward = this.getReward(userLotteries[i], winningNumberCount, winningNumbers[5]);
+            if (reward == JACKPOT_MARKUP) {
+                jackpotWinners.push(user);
+            } else {
+                totalNonJackpotReward = totalNonJackpotReward + reward;
+            }
+        }
+
+        if (totalNonJackpotReward > 0) {
+            IERC20(USDC_ADDRESS).transfer(user, totalNonJackpotReward);
+        }
+        userAddressToLotteryClaimRecord[user][lotteryId] = true;
+    }
+
+    function getCurrentLotteryEntries() external view returns (uint256[6][] memory) {
+        return userAddressToLotteries[msg.sender][lotteryId];
+    }
+
+    function getLotteryEntries(uint256 _lotteryId) external view returns (uint256[6][] memory) {
+        return userAddressToLotteries[msg.sender][_lotteryId];
+    }
+
+    function getLotteryEntriesForAnyUser(address user, uint256 _lotteryId) external view onlyOwner returns (uint256[6][] memory) {
+        return userAddressToLotteries[user][_lotteryId];
     }
 
     function updateAdmin(address payable _admin) onlyOwner external {
         admin = _admin;
+    }
+
+    function updateEntryFee(uint256 fee) onlyOwner external {
+        entryFee = fee;
     }
 
     function updateMinUSDCDrawBalance(uint256 minBalance) onlyOwner external {
@@ -156,11 +268,8 @@ contract MillionJackpot is Ownable {
         for (uint i = 0; i < lotteryResults.length; i++) {
             winningNumbers[i] = lotteryResults[i];
         }
-       
-        uint256 adminFees = lastGamePoolBalance / 5;
-        IERC20(USDC_ADDRESS).transfer(admin, adminFees);
 
-        lastGamePoolBalance = IERC20(USDC_ADDRESS).balanceOf(address(this));
+        lastGamePoolBalance = usdcBalance;
         claimPhase = 1;
     }
 

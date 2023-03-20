@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/zhew2013/Documents/GigaMillions/contracts/MillionJackpot.sol": {
-      "lastModificationDate": 1679199258825,
-      "contentHash": "74f2005c40715dc65701a7c3d8853094",
+      "lastModificationDate": 1679241691481,
+      "contentHash": "9ecc72dfbc83224d2926a628562cfe1e",
       "sourceName": "contracts/MillionJackpot.sol",
       "solcConfig": {
         "version": "0.8.7",
