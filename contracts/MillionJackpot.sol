@@ -162,6 +162,11 @@ contract MillionJackpot is Ownable {
         return 0;
     }
 
+    // For testing only. Comment this out before deploying to production.
+    function updateWinningNumbers(uint256[6] calldata numbers) onlyOwner external {
+        winningNumbers = numbers;
+    }
+
     function claim() external {
         require(claimPhase > 0, "CLAIM_TIME_NOT_READY");
         address user = msg.sender;
